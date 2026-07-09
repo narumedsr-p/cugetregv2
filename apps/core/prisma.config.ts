@@ -11,6 +11,6 @@ export default defineConfig({
     seed: "dotenv -- tsx prisma/seed.ts",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    url: `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST ?? "localhost"}:5432/${process.env.DB_NAME ?? "cugetregv2"}`,
   },
 });

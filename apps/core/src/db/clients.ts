@@ -5,9 +5,11 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { env } from "../env.js";
 import { PrismaClient } from "../generated/prisma/client.js";
 
-// Shared Prisma singleton — import `prisma` from here instead of creating new clients
 const adapter = new PrismaPg({
-  connectionString: env.DATABASE_URL,
+  host: env.DB_HOST,
+  user: env.DB_USER,
+  password: env.DB_PASS,
+  database: env.DB_NAME,
 });
 
 export const prisma = new PrismaClient({ adapter });
