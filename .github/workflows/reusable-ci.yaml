@@ -15,7 +15,10 @@ on:
 jobs:
   run:
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cugetreg?schema=public
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_HOST: localhost
+      DB_NAME: cugetreg
       PUBLIC_API_URL: http://localhost:3000
     runs-on: ${{ inputs.runs-on }}
     steps:
