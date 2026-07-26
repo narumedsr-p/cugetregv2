@@ -1,4 +1,4 @@
-import { prisma } from "../db/clients.js";
+import { prisma } from "@/db/clients.js";
 
 export const announcementService = {
   listAnnouncements: async () => {
@@ -18,5 +18,15 @@ export const announcementService = {
     }
 
     return announcement;
+  },
+
+  createAnnouncement: async ({
+    title,
+    content,
+  }: {
+    title: string;
+    content: string;
+  }) => {
+    return prisma.announcement.create({ data: { title, content } });
   },
 };

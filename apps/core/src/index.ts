@@ -1,20 +1,24 @@
+import type { Variables } from "@/lib/auth.js";
+import activity from "@/routes/activity.js";
+import admin from "@/routes/admin.js";
+import announcement from "@/routes/announcement.js";
+import authRoute, {
+  includeAuth,
+  middlewareAuth,
+  middlewareInternalToken,
+} from "@/routes/auth.js";
+import carts from "@/routes/carts.js";
+import courses from "@/routes/courses.js";
+import internalAnnouncement from "@/routes/internalAnnouncement.js";
+import publicCarts from "@/routes/publicCarts.js";
+import reviews from "@/routes/reviews.js";
+import user from "@/routes/user.js";
+
 import { serve } from "@hono/node-server";
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import dotenv from "dotenv";
 import { cors } from "hono/cors";
-
-import activity from "./routes/activity.js";
-import admin from "./routes/admin.js";
-import announcement from "./routes/announcement.js";
-import authRoute, { includeAuth, middlewareAuth } from "./routes/auth.js";
-import carts from "./routes/carts.js";
-import courses from "./routes/courses.js";
-import publicCarts from "./routes/publicCarts.js";
-import reviews from "./routes/reviews.js";
-import user from "./routes/user.js";
-
-import type { Variables } from "../src/lib/auth.js";
 
 dotenv.config();
 
@@ -52,10 +56,20 @@ app.openAPIRegistry.registerComponent("securitySchemes", "CookieAuth", {
   name: "better-auth.session_token",
 });
 
+// Shared-secret scheme for service-to-service routes (e.g. CI creating an announcement)
+app.openAPIRegistry.registerComponent("securitySchemes", "InternalToken", {
+  type: "apiKey",
+  in: "header",
+  name: "X-Internal-Token",
+});
+
 // Public routes — no auth required
 app.route("/public/carts", publicCarts);
 app.route("/auth", authRoute);
 app.route("/announcement", announcement);
+
+app.use("/internal/*", middlewareInternalToken);
+app.route("/internal/announcement", internalAnnouncement);
 
 app.use("/courses/*", includeAuth);
 
