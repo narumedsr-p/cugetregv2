@@ -35,7 +35,16 @@
 --         subquery in matching_sections when $16 is provided).
 --         period_start_minutes/period_end_minutes are trigger-maintained columns
 --         on course_class; NULL for IA/AR/bad times.
-WITH occupied_slots AS (
+--         MATERIALIZED is required here: this CTE is referenced from exactly
+--         one place (inside matching_sections' fitCartId NOT EXISTS check),
+--         and Postgres 12+ inlines single-reference CTEs by default instead
+--         of computing them once — which re-runs this whole query (course +
+--         course_section + course_class joins) once per candidate section's
+--         class row (~1000x for a mid-size term) rather than the single time
+--         the comment above always intended. Confirmed via EXPLAIN ANALYZE:
+--         without MATERIALIZED this CTE's "loops" count matches the number
+--         of matching_sections rows, not 1.
+WITH occupied_slots AS MATERIALIZED (
     SELECT cl_occ.day_of_week,
            cl_occ.period_start_minutes,
            cl_occ.period_end_minutes
