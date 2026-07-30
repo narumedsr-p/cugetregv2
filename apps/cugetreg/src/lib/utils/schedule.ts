@@ -223,6 +223,31 @@ function formatICSDate(date: Date): string {
   return `${date.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
 }
 
+// RFC 5545 §3.1: content lines must not exceed 75 octets (not characters —
+// Thai text is 3 bytes/char in UTF-8, so this triggers constantly here).
+// Longer lines get "folded" into multiple physical lines, each continuation
+// prefixed with a single space, split on UTF-8 byte boundaries so no
+// multi-byte character is ever cut in half.
+function foldICSLine(line: string): string {
+  const MAX_OCTETS = 75;
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const bytes = encoder.encode(line);
+  if (bytes.length <= MAX_OCTETS) return line;
+
+  const chunks: string[] = [];
+  let start = 0;
+  let limit = MAX_OCTETS;
+  while (start < bytes.length) {
+    let end = Math.min(start + limit, bytes.length);
+    while (end < bytes.length && (bytes[end] & 0xc0) === 0x80) end--;
+    chunks.push(decoder.decode(bytes.slice(start, end)));
+    start = end;
+    limit = MAX_OCTETS - 1; // continuation lines start with a space
+  }
+  return chunks.join('\r\n ');
+}
+
 // Builds an RFC 5545 .ics calendar from the cart's exam schedule (one
 // VEVENT per midterm/final that has an announced date) for the user to
 // import into Google Calendar, Outlook, etc.
@@ -235,10 +260,10 @@ export function generateExamICS(
   const events = [
     ...Object.values(midterms)
       .flat()
-      .map((exam) => ({ ...exam, label: 'สอบกลางภาค' })),
+      .map((exam) => ({ ...exam, type: 'MIDTERM', label: 'Midterm' })),
     ...Object.values(finals)
       .flat()
-      .map((exam) => ({ ...exam, label: 'สอบปลายภาค' })),
+      .map((exam) => ({ ...exam, type: 'FINAL', label: 'Final' })),
   ].filter(
     (exam): exam is typeof exam & { start: Date; end: Date } =>
       exam.start !== null && exam.end !== null,
@@ -246,27 +271,27 @@ export function generateExamICS(
 
   const dtstamp = formatICSDate(new Date());
 
-  const veventBlocks = events.map((exam) =>
-    [
-      'BEGIN:VEVENT',
-      `UID:${exam.cartItemId}-${exam.label}@cugetreg`,
-      `DTSTAMP:${dtstamp}`,
-      `DTSTART:${formatICSDate(exam.start)}`,
-      `DTEND:${formatICSDate(exam.end)}`,
-      `SUMMARY:${escapeICSText(`${exam.label} - ${exam.abbrName}`)}`,
-      `DESCRIPTION:${escapeICSText(exam.name)}`,
-      'END:VEVENT',
-    ].join('\r\n'),
-  );
+  const eventLines = events.flatMap((exam) => [
+    'BEGIN:VEVENT',
+    `UID:${exam.cartItemId}-${exam.type}@cugetreg`,
+    `DTSTAMP:${dtstamp}`,
+    `DTSTART:${formatICSDate(exam.start)}`,
+    `DTEND:${formatICSDate(exam.end)}`,
+    `SUMMARY:${escapeICSText(`${exam.label} - ${exam.abbrName}`)}`,
+    `DESCRIPTION:${escapeICSText(exam.name)}`,
+    'END:VEVENT',
+  ]);
 
-  return [
+  const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//CU Get Reg//Exam Schedule//TH',
     'CALSCALE:GREGORIAN',
-    ...veventBlocks,
+    ...eventLines,
     'END:VCALENDAR',
-  ].join('\r\n');
+  ];
+
+  return lines.map(foldICSLine).join('\r\n');
 }
 
 export function downloadICS(filename: string, icsContent: string) {
