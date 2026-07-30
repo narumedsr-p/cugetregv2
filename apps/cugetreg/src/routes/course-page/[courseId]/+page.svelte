@@ -900,7 +900,7 @@
               class="mt-5 flex items-start gap-2 bg-amber-50 px-3 py-2 text-sm"
             >
               <AlertTriangle size={16} class="mt-0.5 text-amber-900" />
-              <span class="font-sarabun text-neutral-900">
+              <span class="font-sans text-neutral-900">
                 ข้อมูลคำอธิบายรายวิชาที่แสดงไม่ได้เป็นข้อมูลล่าสุด
                 อาจมีการเปลี่ยนแปลงได้ โปรดตรวจสอบกับรายวิชาที่จัดอีกครั้ง
               </span>
@@ -1209,7 +1209,7 @@
                 >
                   <Accordion.Trigger class="hover:no-underline">
                     <div
-                      class="flex items-center gap-2 text-sm font-medium text-[#4A70C6]"
+                      class="flex items-center gap-2 text-xs font-medium text-[#4A70C6] sm:text-base"
                     >
                       <Check size={16} />
                       <span>กลุ่ม : {groupName}</span>
