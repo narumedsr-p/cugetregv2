@@ -211,6 +211,77 @@ export function getExamData(
   return { midterms, finals };
 }
 
+function escapeICSText(text: string): string {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
+}
+
+function formatICSDate(date: Date): string {
+  return `${date.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
+}
+
+// Builds an RFC 5545 .ics calendar from the cart's exam schedule (one
+// VEVENT per midterm/final that has an announced date) for the user to
+// import into Google Calendar, Outlook, etc.
+export function generateExamICS(
+  cart: CartWithItemsBase,
+  exams: ExamScheduleItem[],
+): string {
+  const { midterms, finals } = getExamData(cart, exams);
+
+  const events = [
+    ...Object.values(midterms)
+      .flat()
+      .map((exam) => ({ ...exam, label: 'สอบกลางภาค' })),
+    ...Object.values(finals)
+      .flat()
+      .map((exam) => ({ ...exam, label: 'สอบปลายภาค' })),
+  ].filter(
+    (exam): exam is typeof exam & { start: Date; end: Date } =>
+      exam.start !== null && exam.end !== null,
+  );
+
+  const dtstamp = formatICSDate(new Date());
+
+  const veventBlocks = events.map((exam) =>
+    [
+      'BEGIN:VEVENT',
+      `UID:${exam.cartItemId}-${exam.label}@cugetreg`,
+      `DTSTAMP:${dtstamp}`,
+      `DTSTART:${formatICSDate(exam.start)}`,
+      `DTEND:${formatICSDate(exam.end)}`,
+      `SUMMARY:${escapeICSText(`${exam.label} - ${exam.abbrName}`)}`,
+      `DESCRIPTION:${escapeICSText(exam.name)}`,
+      'END:VEVENT',
+    ].join('\r\n'),
+  );
+
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//CU Get Reg//Exam Schedule//TH',
+    'CALSCALE:GREGORIAN',
+    ...veventBlocks,
+    'END:VCALENDAR',
+  ].join('\r\n');
+}
+
+export function downloadICS(filename: string, icsContent: string) {
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${filename}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 // TODO: remove any
 export function getExamDateOrder(examsData: any) {
   const midterms: number[] = Object.keys(examsData.midterms)
