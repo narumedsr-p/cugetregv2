@@ -80,7 +80,7 @@
 </script>
 
 <div
-	class="border-surface-container box-border flex h-[320px] w-full flex-col gap-y-4 rounded-xl border px-6 py-5 lg:h-auto lg:gap-y-8
+	class="border-surface-container box-border flex h-[320px] w-full flex-col gap-y-2 rounded-xl border px-6 py-5 lg:h-auto lg:gap-y-4
   lg:px-12 lg:py-10"
 	class:h-auto={isExpanded}
 >
@@ -126,7 +126,7 @@
 			class:overflow-hidden={!isExpanded}
 		>
 			<div
-				class="prose prose-sm text-body1 font-sarabun text-on-surface prose-headings:font-sarabun prose-headings:text-on-surface prose-headings:mt-2 prose-headings:mb-1 prose-headings:text-base prose-p:my-1 prose-strong:text-on-surface w-full max-w-none"
+				class="prose prose-sm text-body2 font-sarabun text-on-surface prose-headings:font-sarabun prose-headings:text-on-surface prose-headings:mt-2 prose-headings:mb-1 prose-headings:text-base prose-p:my-1 prose-strong:text-on-surface w-full max-w-none"
 			>
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -- content is sanitized with DOMPurify above -->
 				{@html renderedContent}
