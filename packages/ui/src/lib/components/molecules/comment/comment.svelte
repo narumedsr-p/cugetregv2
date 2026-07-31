@@ -11,6 +11,7 @@
 		content: string;
 		semester: string;
 		year: number;
+		section?: number | null;
 		rating: number;
 		likesCount: number;
 		dislikesCount: number;
@@ -28,6 +29,7 @@
 		content,
 		semester,
 		year,
+		section,
 		rating,
 		likesCount,
 		dislikesCount,
@@ -97,6 +99,9 @@
 			<div class="text-subtitle font-sans font-medium">
 				{semester}
 				{year}
+				{#if section}
+					Section {section}
+				{/if}
 			</div>
 		</div>
 
