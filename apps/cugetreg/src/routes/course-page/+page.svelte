@@ -1,5 +1,6 @@
 <script lang="ts">
   import SelectedCourse from '$lib/components/selected-course.svelte';
+  import { getCartSelectionController } from '$lib/stores/cart-selection.svelte';
   import { getUserCartStore } from '$lib/stores/user-cart';
 
   import {
@@ -109,7 +110,7 @@
       },
     },
     {
-      label: 'รายละเอียดเซ็คชัน',
+      label: 'รายละเอียดเซคชัน',
       icon: StickyNote,
       onClick: () => {
         scrollToSection(detailSection);
@@ -156,6 +157,7 @@
   }
 
   const userCart = getUserCartStore();
+  const cartSelection = getCartSelectionController();
 
   const reviewSamples = [
     {
@@ -1197,7 +1199,10 @@
                     name: item.name,
                     id: item.id,
                   })) ?? []}
-                  bind:value={$userCart.currentCartId}
+                  bind:value={
+                    () => cartSelection.selectedId,
+                    (id) => void cartSelection.select(id)
+                  }
                   semester={$userCart.currentCart.semester}
                   semesterType={$userCart.currentCart.studyProgram}
                   academicYear={$userCart.currentCart.academicYear}

@@ -8,6 +8,7 @@
 	import * as Select from '$lib/components/molecules/select/index.js';
 
 	import { ArrowRight, EyeOff, Trash, X } from '@lucide/svelte';
+	import { untrack } from 'svelte';
 
 	import { cn } from '@cugetreg/utils';
 	import { courseColorVariants } from '@cugetreg/utils/constants';
@@ -33,7 +34,7 @@
 		onChangeSection = () => {}
 	}: ViewCourseProps = $props();
 
-	let selectedSectionNo = $state(data?.selectedSectionNo ?? 0);
+	let selectedSectionNo = $state(untrack(() => data?.selectedSectionNo ?? 0));
 
 	$effect(() => {
 		if (data) {
@@ -164,7 +165,7 @@
 			<Table.Root class="table-fixed">
 				<Table.Header>
 					<Table.Row>
-						<Table.Head class="text-body1 w-1/2">สอบกางภาค</Table.Head>
+						<Table.Head class="text-body1 w-1/2">สอบกลางภาค</Table.Head>
 						<Table.Head class="text-body1 w-1/2">สอบปลายภาค</Table.Head>
 					</Table.Row>
 				</Table.Header>
